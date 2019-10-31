@@ -1,17 +1,28 @@
 package su.rusfearuth.reactnative.native9patch;
 
 import android.content.Context;
-import android.support.annotation.NonNull;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.NinePatch;
+import android.graphics.Rect;
+import android.graphics.drawable.NinePatchDrawable;
+import android.net.Uri;
+import android.util.Log;
 import android.widget.ImageView;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 
 import su.rusfearuth.reactnative.native9patch.RCTImageCache;
 
 
 public class RCTImageCapInsetView extends ImageView {
     private String mUri;
+    private Context mContext;
 
     public RCTImageCapInsetView(Context context) {
         super(context);
+        this.mContext = context;
     }
 
     public void setSource(String uri) {
@@ -20,34 +31,36 @@ public class RCTImageCapInsetView extends ImageView {
     }
 
     public void reload() {
-        Integer resId = null;
+        Uri resUri = null;
         if (getImageCache().has(mUri)) {
-            resId = getImageCache().get(mUri);
-            if (resId == null) {
+            resUri = getImageCache().get(mUri);
+            if (resUri == null) {
                 getImageCache().remove(mUri);
             }
         }
 
-        if (resId == null) {
-            resId = getResourceDrawableId(mUri);
-            getImageCache().put(mUri, resId);
+        if (resUri == null) {
+            resUri = Uri.fromFile(new File(mUri));
+            getImageCache().put(mUri, resUri);
         }
 
-        setBackgroundResource(resId);
-    }
-
-    private @NonNull Integer getResourceDrawableId(@NonNull final String aName) {
-        if (aName == null || aName.isEmpty()) {
-                return 0;
+        if (resUri == null) {
+            return;
         }
 
-        final String name = aName.toLowerCase().replace("-", "_");
+        try {
+            Bitmap bitmap = BitmapFactory.decodeStream(mContext.getContentResolver().openInputStream(resUri));
+            byte[] chunk = bitmap.getNinePatchChunk();
+            if (NinePatch.isNinePatchChunk(chunk)) {
+                NinePatchDrawable ninePatchDrawable = new NinePatchDrawable(mContext.getResources(), bitmap, bitmap.getNinePatchChunk(), new Rect(), null);
+                setBackgroundDrawable(ninePatchDrawable);
+            } else {
+                Log.e("NinePath", "----------> is false");
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
 
-        return getResources().getIdentifier(
-                name,
-                "drawable",
-                getContext().getPackageName()
-        );
     }
 
     private RCTImageCache getImageCache()

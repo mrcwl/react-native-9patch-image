@@ -1,7 +1,7 @@
 package su.rusfearuth.reactnative.native9patch;
 
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import android.graphics.Bitmap;
+import android.net.Uri;
 
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
@@ -9,14 +9,14 @@ import java.util.HashMap;
 
 public class RCTImageCache {
     private volatile static RCTImageCache sInstance = null;
-    private HashMap<String, WeakReference<Integer>> mCache;
+    private HashMap<String, Uri> mCache;
 
     public static RCTImageCache getInstance() {
         if (sInstance == null) {
             synchronized (RCTImageCache.class) {
-               if (sInstance == null) {
-                   sInstance = new RCTImageCache();
-               }
+                if (sInstance == null) {
+                    sInstance = new RCTImageCache();
+                }
             }
         }
 
@@ -27,20 +27,20 @@ public class RCTImageCache {
         mCache = new HashMap<>();
     }
 
-    public void put(@NonNull final String key,
-                    @NonNull Integer drawableId) {
-        mCache.put(key, new WeakReference(drawableId));
+    public void put(final String key,
+                    Uri uri) {
+        mCache.put(key, uri);
     }
 
-    public @Nullable Integer get(@NonNull final String key) {
-        return mCache.get(key).get();
+    public Uri get(final String key) {
+        return mCache.get(key);
     }
 
-    public boolean has(@NonNull final String key) {
+    public boolean has(final String key) {
         return mCache.containsKey(key) && get(key) != null;
     }
 
-    public void remove(@NonNull final String key) {
+    public void remove(final String key) {
         if (!mCache.containsKey(key)) {
             return;
         }
