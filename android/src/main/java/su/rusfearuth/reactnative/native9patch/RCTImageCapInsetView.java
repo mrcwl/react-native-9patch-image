@@ -31,36 +31,27 @@ public class RCTImageCapInsetView extends ImageView {
     }
 
     public void reload() {
-        Uri resUri = null;
-        if (getImageCache().has(mUri)) {
-            resUri = getImageCache().get(mUri);
-            if (resUri == null) {
-                getImageCache().remove(mUri);
-            }
+
+        Integer resId = null;
+
+        resId = getResourceDrawableId(mUri);
+
+        setBackgroundResource(resId);
+
+    }
+
+    private Integer getResourceDrawableId(final String aName) {
+        if (aName == null || aName.isEmpty()) {
+            return 0;
         }
 
-        if (resUri == null) {
-            resUri = Uri.fromFile(new File(mUri));
-            getImageCache().put(mUri, resUri);
-        }
+        final String name = aName.toLowerCase().replace("-", "_");
 
-        if (resUri == null) {
-            return;
-        }
-
-        try {
-            Bitmap bitmap = BitmapFactory.decodeStream(mContext.getContentResolver().openInputStream(resUri));
-            byte[] chunk = bitmap.getNinePatchChunk();
-            if (NinePatch.isNinePatchChunk(chunk)) {
-                NinePatchDrawable ninePatchDrawable = new NinePatchDrawable(mContext.getResources(), bitmap, bitmap.getNinePatchChunk(), new Rect(), null);
-                setBackgroundDrawable(ninePatchDrawable);
-            } else {
-                Log.e("NinePath", "----------> is false");
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
+        return getResources().getIdentifier(
+                name,
+                "drawable",
+                getContext().getPackageName()
+        );
     }
 
     private RCTImageCache getImageCache()
